@@ -6,13 +6,12 @@ import os
 # CSV 파일 URL
 url = 'https://raw.githubusercontent.com/HKIM55/practice/main/grocery_rawdata.csv'
 
-# CSV 불러오기
 try:
     df = pd.read_csv(url)
 
     # 문자열 컬럼 공백 제거
     for col in ['품목', '세부', '마트']:
-        df[col] = df[col].astype(str).strip()
+        df[col] = df[col].astype(str).str.strip()
 
     # 날짜 처리: float형 → 정수형 → 문자열 변환
     df['날짜'] = df['날짜'].apply(lambda x: str(int(x)) if pd.notnull(x) else '')
@@ -76,3 +75,5 @@ try:
             st.warning("No search results found.")
 
 except Exception as e:
+    # ✅ 오류 메시지 출력 (들여쓰기 수정)
+    st.error(f"Error loading CSV: {e}")
