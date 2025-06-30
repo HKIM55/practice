@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
-import requests
 
 # 한글 폰트 설정
 matplotlib.rc('font', family='AppleGothic')
@@ -18,11 +17,14 @@ try:
     for col in ['품목', '세부', '마트']:
         df[col] = df[col].astype(str).str.strip()
 
-    # 날짜 처리: 6자리 아닌 데이터 제거
-    df = df[df['날짜'].astype(str).str.len() == 6]
+    # 날짜 처리: float형 → 정수형 → 문자열 변환
+    df['날짜'] = df['날짜'].apply(lambda x: str(int(x)) if pd.notnull(x) else '')
+
+    # 날짜 8자리만 남기기
+    df = df[df['날짜'].str.len() == 8]
 
     # 날짜 컬럼 변환
-    df['날짜'] = pd.to_datetime(df['날짜'].astype(str), format='%y%m%d', errors='coerce')
+    df['날짜'] = pd.to_datetime(df['날짜'], format='%Y%m%d', errors='coerce')
     df = df.dropna(subset=['날짜'])
 
     # 단가 (원) 처리
