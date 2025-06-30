@@ -33,15 +33,7 @@ try:
 
     st.title("📊 가계부 품목/세부 가격 추세 확인 앱")
 
-    # CSV 로딩 확인용 샘플 출력
-    st.subheader('✅ CSV 데이터 샘플')
-    st.write(df.head())
 
-    st.subheader('✅ CSV 컬럼명')
-    st.write(df.columns.tolist())
-
-    st.subheader('✅ 전체 품목 리스트')
-    st.write(df['품목'].unique().tolist())
 
     search_option = st.radio('🔎 검색 기준을 선택하세요', ['품목', '세부'])
     search_keyword = st.text_input(f'{search_option} 입력')
