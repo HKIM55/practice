@@ -2,9 +2,10 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
+import os
 
-# 한글 폰트 설정
-matplotlib.rc('font', family='AppleGothic')
+# 🔥 한글 폰트 설정 (Streamlit Cloud 호환)
+plt.rcParams['font.family'] = 'NanumGothic'
 
 # CSV 파일 URL
 url = 'https://raw.githubusercontent.com/HKIM55/practice/main/grocery_rawdata.csv'
@@ -32,8 +33,6 @@ try:
     df['단가 (원)'] = pd.to_numeric(df['단가 (원)'], errors='coerce')
 
     st.title("📊 가계부 품목/세부 가격 추세 확인 앱")
-
-
 
     search_option = st.radio('🔎 검색 기준을 선택하세요', ['품목', '세부'])
     search_keyword = st.text_input(f'{search_option} 입력')
