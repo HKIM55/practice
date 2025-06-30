@@ -6,22 +6,36 @@ import matplotlib
 # 한글 폰트 설정 (Mac)
 matplotlib.rc('font', family='AppleGothic')
 
-# CSV 파일 경로 (Streamlit Cloud에서는 동일 폴더 내 파일명만 입력)
+# CSV 파일 경로 (Streamlit Cloud는 파일명만)
 file_path = 'grocery_rawdata.csv'
 
-# CSV 파일 읽기
-df = pd.read_csv(file_path)
+try:
+    df = pd.read_csv(file_path)
+except Exception as e:
+    st.error(f"❌ CSV 파일을 읽을 수 없습니다.\n오류 메시지: {e}")
+    st.stop()
 
-# 날짜 컬럼이 6자리인지 확인하고 변환
-df = df[df['날짜'].astype(str).str.len() == 6]
-df['날짜'] = pd.to_datetime(df['날짜'].astype(str), format='%y%m%d', errors='coerce')
+# CSV 파일 정상 읽음
+if df is None or df.empty:
+    st.error("❌ CSV 파일이 비어 있거나 불러오지 못했습니다.")
+    st.stop()
 
-# 날짜 NaT 제거
-df = df.dropna(subset=['날짜'])
+# 날짜 컬럼 처리
+try:
+    df = df[df['날짜'].astype(str).str.len() == 6]
+    df['날짜'] = pd.to_datetime(df['날짜'].astype(str), format='%y%m%d', errors='coerce')
+    df = df.dropna(subset=['날짜'])
+except Exception as e:
+    st.error(f"❌ 날짜 처리 중 오류 발생: {e}")
+    st.stop()
 
 # 단가 (원) 컬럼 처리
-df['단가 (원)'] = df['단가 (원)'].astype(str).str.replace(',', '').str.strip()
-df['단가 (원)'] = pd.to_numeric(df['단가 (원)'], errors='coerce')
+try:
+    df['단가 (원)'] = df['단가 (원)'].astype(str).str.replace(',', '').str.strip()
+    df['단가 (원)'] = pd.to_numeric(df['단가 (원)'], errors='coerce')
+except Exception as e:
+    st.error(f"❌ 단가 (원) 처리 중 오류 발생: {e}")
+    st.stop()
 
 # Streamlit 앱 시작
 st.title("📊 가계부 품목/세부 가격 추세 확인 앱")
