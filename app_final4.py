@@ -1,11 +1,7 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib
 import os
-
-# 🔥 한글 폰트 설정 (Streamlit Cloud 호환)
-plt.rcParams['font.family'] = 'NanumGothic'
 
 # CSV 파일 URL
 url = 'https://raw.githubusercontent.com/HKIM55/practice/main/grocery_rawdata.csv'
@@ -16,7 +12,7 @@ try:
 
     # 문자열 컬럼 공백 제거
     for col in ['품목', '세부', '마트']:
-        df[col] = df[col].astype(str).str.strip()
+        df[col] = df[col].astype(str).strip()
 
     # 날짜 처리: float형 → 정수형 → 문자열 변환
     df['날짜'] = df['날짜'].apply(lambda x: str(int(x)) if pd.notnull(x) else '')
@@ -32,10 +28,10 @@ try:
     df['단가 (원)'] = df['단가 (원)'].astype(str).str.replace(',', '').str.strip()
     df['단가 (원)'] = pd.to_numeric(df['단가 (원)'], errors='coerce')
 
-    st.title("📊 가계부 품목/세부 가격 추세 확인 앱")
+    st.title("📊 Grocery Price Tracker")
 
-    search_option = st.radio('🔎 검색 기준을 선택하세요', ['품목', '세부'])
-    search_keyword = st.text_input(f'{search_option} 입력')
+    search_option = st.radio('🔎 Search by', ['품목', '세부'])
+    search_keyword = st.text_input(f'Enter {search_option}')
 
     if search_keyword:
         if search_option == '품목':
@@ -44,10 +40,10 @@ try:
             result_df = df[df['세부'].str.contains(search_keyword, case=False, na=False)]
 
         if not result_df.empty:
-            display_df = result_df[['날짜', '품목', '세부', '마트', '단가 (원)', '단가 (100 g, ml당 가격)']]\
+            display_df = result_df[['날짜', '품목', '세부', '마트', '단가 (원)', '단가 (100 g, ml당 가격)']] \
                 .dropna(subset=['단가 (원)']).sort_values('날짜').reset_index(drop=True)
 
-            st.write(f"✅ 검색 결과: {len(display_df)}건")
+            st.write(f"✅ Search Results: {len(display_df)} items")
             st.dataframe(display_df)
 
             if not display_df.empty:
@@ -60,21 +56,23 @@ try:
                 plt.figure(figsize=(12, 6))
                 plt.plot(display_df['날짜'], display_df['단가 (원)'], marker='o', linestyle='-', color='tab:blue')
 
-                plt.scatter(min_row['날짜'], min_row['단가 (원)'], color='red', label=f"최소: {min_row['단가 (원)']}원 ({min_row['날짜'].date()})")
-                plt.scatter(max_row['날짜'], max_row['단가 (원)'], color='green', label=f"최대: {max_row['단가 (원)']}원 ({max_row['날짜'].date()})")
+                # Min, Max 포인트 강조 (영어로 변경)
+                plt.scatter(min_row['날짜'], min_row['단가 (원)'], color='red',
+                            label=f"Min: {min_row['단가 (원)']} KRW ({min_row['날짜'].date()})")
+                plt.scatter(max_row['날짜'], max_row['단가 (원)'], color='green',
+                            label=f"Max: {max_row['단가 (원)']} KRW ({max_row['날짜'].date()})")
 
-                plt.title(f'📈 {search_keyword} 단가 추세')
-                plt.xlabel('날짜')
-                plt.ylabel('단가 (원)')
+                plt.title(f'📈 Price Trend for {search_keyword}')
+                plt.xlabel('Date')
+                plt.ylabel('Price (KRW)')
                 plt.xticks(rotation=45)
                 plt.grid(True)
                 plt.legend()
                 plt.tight_layout()
                 st.pyplot(plt)
             else:
-                st.warning("📉 유효한 단가 데이터가 없습니다.")
+                st.warning("📉 No valid price data available.")
         else:
-            st.warning("검색 결과가 없습니다.")
+            st.warning("No search results found.")
 
 except Exception as e:
-    st.error(f"CSV를 불러오는 중 문제가 발생했습니다: {e}")
