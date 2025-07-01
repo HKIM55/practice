@@ -23,6 +23,9 @@ try:
     df['날짜'] = pd.to_datetime(df['날짜'], format='%Y%m%d', errors='coerce')
     df = df.dropna(subset=['날짜'])
 
+    # 시간 제거 → 날짜만
+    df['날짜'] = df['날짜'].dt.date
+
     # 단가 (원) 처리
     df['단가 (원)'] = df['단가 (원)'].astype(str).str.replace(',', '').str.strip()
     df['단가 (원)'] = pd.to_numeric(df['단가 (원)'], errors='coerce')
@@ -42,24 +45,36 @@ try:
             display_df = result_df[['날짜', '품목', '세부', '마트', '단가 (원)', '단가 (100 g, ml당 가격)']] \
                 .dropna(subset=['단가 (원)']).sort_values('날짜').reset_index(drop=True)
 
-            st.write(f"✅ Search Results: {len(display_df)} items")
-            st.dataframe(display_df)
-
             if not display_df.empty:
+                # Min, Max 데이터 추출
                 min_idx = display_df['단가 (원)'].idxmin()
                 max_idx = display_df['단가 (원)'].idxmax()
 
                 min_row = display_df.loc[min_idx]
                 max_row = display_df.loc[max_idx]
 
+                # ✅ 최대/최소 요약 표
+                st.subheader("📌 Price Summary")
+                summary_df = pd.DataFrame({
+                    'Type': ['Minimum Price', 'Maximum Price'],
+                    'Date': [min_row['날짜'], max_row['날짜']],
+                    'Price (KRW)': [min_row['단가 (원)'], max_row['단가 (원)']]
+                })
+                st.table(summary_df)
+
+                # ✅ 검색 결과 표
+                st.subheader("🔍 Search Results")
+                st.dataframe(display_df)
+
+                # ✅ 그래프
                 plt.figure(figsize=(12, 6))
                 plt.plot(display_df['날짜'], display_df['단가 (원)'], marker='o', linestyle='-', color='tab:blue')
 
-                # Min, Max 포인트 강조 (영어로 변경)
+                # Min, Max 포인트 강조
                 plt.scatter(min_row['날짜'], min_row['단가 (원)'], color='red',
-                            label=f"Min: {min_row['단가 (원)']} KRW ({min_row['날짜'].date()})")
+                            label=f"Min: {min_row['단가 (원)']} KRW ({min_row['날짜']})")
                 plt.scatter(max_row['날짜'], max_row['단가 (원)'], color='green',
-                            label=f"Max: {max_row['단가 (원)']} KRW ({max_row['날짜'].date()})")
+                            label=f"Max: {max_row['단가 (원)']} KRW ({max_row['날짜']})")
 
                 plt.title(f'📈 Price Trend for {search_keyword}')
                 plt.xlabel('Date')
@@ -75,5 +90,4 @@ try:
             st.warning("No search results found.")
 
 except Exception as e:
-    # ✅ 오류 메시지 출력 (들여쓰기 수정)
     st.error(f"Error loading CSV: {e}")
